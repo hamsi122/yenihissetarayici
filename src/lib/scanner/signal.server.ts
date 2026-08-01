@@ -263,9 +263,28 @@ export function buildSignal(
   const volumePoints = Math.round(volumeRaw * VOLUME_WEIGHT);
 
   // Toplam skor tam olarak parçaların toplamıdır (maks. 100). Ek bonus uygulanmaz.
-  let bullishScore = Math.max(0, Math.min(100, technicalPoints + fundamentalPoints + volumePoints));
-  if (fundamentals["hard_cap_trigger"]) bullishScore = Math.min(bullishScore, 45);
+  let technicalFinal = technicalPoints;
+  let fundamentalFinal = fundamentalPoints;
+  let volumeFinal = volumePoints;
 
+  // Güvenlik sınırı tetiklendiğinde toplamı kırpmak yerine bileşenler düşürülür;
+  // böylece matris kırılımı ile gösterilen toplam skor her zaman birebir uyumlu kalır.
+  const HARD_CAP = 45;
+  if (fundamentals["hard_cap_trigger"]) {
+    let excess = technicalFinal + fundamentalFinal + volumeFinal - HARD_CAP;
+    if (excess > 0) {
+      const take = (value: number) => {
+        const amount = Math.min(value, excess);
+        excess -= amount;
+        return value - amount;
+      };
+      fundamentalFinal = take(fundamentalFinal);
+      volumeFinal = take(volumeFinal);
+      technicalFinal = take(technicalFinal);
+    }
+  }
+
+  const bullishScore = Math.max(0, Math.min(100, technicalFinal + fundamentalFinal + volumeFinal));
 
   const action = scoreToAction(bullishScore);
   const risk = buildRiskBlock(action, closeValue, atr14);
@@ -276,13 +295,14 @@ export function buildSignal(
     action,
     bullish_score: bullishScore,
     score_breakdown: {
-      technical: technicalPoints,
-      volume: volumePoints,
-      fundamental: fundamentalPoints,
+      technical: technicalFinal,
+      volume: volumeFinal,
+      fundamental: fundamentalFinal,
       raw_technical: technicalRaw,
       raw_fundamental: fundamentalRaw,
       raw_volume: volumeRaw,
       volume_breakout_bonus: 0,
+      hard_cap_applied: Boolean(fundamentals["hard_cap_trigger"]),
       weights: { technical: TECHNICAL_WEIGHT, volume: VOLUME_WEIGHT, fundamental: FUNDAMENTAL_WEIGHT },
       fundamentals_available: fundamentalsAvailable,
     },
@@ -327,14 +347,14 @@ export function estimateTargetDuration(patterns: PatternMatch[], action: string)
   const confirmed = patterns.filter((p) => p.confirmed);
   if (!confirmed.length) return "7-14 Gün";
   const mapping: Record<string, string> = {
-    "Double Top": "5-10 Gün",
-    "Double Bottom": "5-10 Gün",
-    "Head and Shoulders": "10-20 Gün",
-    "Inverse Head and Shoulders": "10-20 Gün",
-    "Symmetrical Triangle": "7-14 Gün",
-    "Cup and Handle": "15-30 Gün",
+    double_top: "5-10 Gün",
+    double_bottom: "5-10 Gün",
+    head_shoulders: "10-20 Gün",
+    inverse_head_shoulders: "10-20 Gün",
+    symmetrical_triangle: "7-14 Gün",
+    cup_handle: "15-30 Gün",
   };
-  const primary = confirmed[0]?.name ?? "";
+  const primary = confirmed[0]?.type ?? "";
   if (mapping[primary]) return mapping[primary]!;
   return ["AL", "GÜÇLÜ AL"].includes(action) ? "5-10 Gün" : "7-14 Gün";
 }
