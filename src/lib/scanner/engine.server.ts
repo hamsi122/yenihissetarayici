@@ -6,11 +6,15 @@ import type { SignalDoc } from "./types";
 
 const BATCH_PER_MARKET = 50;
 const CONCURRENCY = 4;
+/** Yarıda kesilen bir taramanın kilidi bu süre sonunda otomatik serbest bırakılır. */
+const STALE_RUN_MS = 20 * 60 * 1000;
 
 export async function getScannerState() {
   const { data } = await supabaseAdmin.from("scanner_state").select("*").eq("id", 1).maybeSingle();
+  const startedAt = data?.started_at ? Date.parse(data.started_at) : null;
+  const stale = startedAt !== null && Date.now() - startedAt > STALE_RUN_MS;
   return {
-    running: Boolean(data?.running),
+    running: Boolean(data?.running) && !stale,
     last_run: data?.last_run ?? null,
     last_error: data?.last_error ?? null,
     last_duration_seconds: data?.last_duration_seconds ?? null,
@@ -21,6 +25,7 @@ export async function getScannerState() {
 
 type ScannerStatePatch = {
   running?: boolean;
+  started_at?: string | null;
   last_run?: string | null;
   last_error?: string | null;
   last_duration_seconds?: number | null;
@@ -101,7 +106,7 @@ export async function runScanBatch() {
   const nextCursor = (start + BATCH_PER_MARKET) % Math.max(MARKET_UNIVERSE.US.length, MARKET_UNIVERSE.BIST.length);
 
   const began = Date.now();
-  await setScannerState({ running: true, last_error: null });
+  await setScannerState({ running: true, started_at: new Date().toISOString(), last_error: null });
   let scanned = 0;
   let lastError: string | null = null;
 
@@ -121,6 +126,7 @@ export async function runScanBatch() {
 
   await setScannerState({
     running: false,
+    started_at: null,
     last_run: new Date().toISOString(),
     last_error: lastError,
     last_duration_seconds: (Date.now() - began) / 1000,
