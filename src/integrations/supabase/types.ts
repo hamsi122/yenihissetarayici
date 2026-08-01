@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          password_hash: string
+          password_salt: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          password_hash: string
+          password_salt: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          password_hash?: string
+          password_salt?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: number
+          message: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: number
+          message: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: number
+          message?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          created_at: string
+          id: number
+          path: string
+          referrer: string | null
+          session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          path: string
+          referrer?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          path?: string
+          referrer?: string | null
+          session_id?: string | null
+        }
+        Relationships: []
+      }
+      scanner_state: {
+        Row: {
+          cursor_index: number
+          id: number
+          last_duration_seconds: number | null
+          last_error: string | null
+          last_run: string | null
+          last_scanned_count: number
+          running: boolean
+        }
+        Insert: {
+          cursor_index?: number
+          id?: number
+          last_duration_seconds?: number | null
+          last_error?: string | null
+          last_run?: string | null
+          last_scanned_count?: number
+          running?: boolean
+        }
+        Update: {
+          cursor_index?: number
+          id?: number
+          last_duration_seconds?: number | null
+          last_error?: string | null
+          last_run?: string | null
+          last_scanned_count?: number
+          running?: boolean
+        }
+        Relationships: []
+      }
+      signals: {
+        Row: {
+          action: string
+          bullish_score: number
+          doc: Json
+          market: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          bullish_score?: number
+          doc: Json
+          market: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          bullish_score?: number
+          doc?: Json
+          market?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
