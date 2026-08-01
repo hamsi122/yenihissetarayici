@@ -10,33 +10,209 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as ApiScannerRunRouteImport } from './routes/api/scanner/run'
+import { Route as ApiScannerStateRouteImport } from './routes/api/scanner/state'
+import { Route as ApiSignalsIndexRouteImport } from './routes/api/signals/index'
+import { Route as ApiPublicHooksScanRouteImport } from './routes/api/public/hooks/scan'
+import { Route as ApiSignalsSymbolIndexRouteImport } from './routes/api/signals/$symbol/index'
+import { Route as ApiSignalsSymbolAutoEnrichRouteImport } from './routes/api/signals/$symbol/auto-enrich'
+import { Route as ApiSignalsSymbolExplainRouteImport } from './routes/api/signals/$symbol/explain'
+import { Route as ApiSignalsSymbolReanalyzeRouteImport } from './routes/api/signals/$symbol/reanalyze'
+import { Route as ApiSignalsSymbolVisualizeRouteImport } from './routes/api/signals/$symbol/visualize'
+import { Route as ApiSignalsAnalyzeSymbolRouteImport } from './routes/api/signals/analyze/$symbol'
+import { Route as ApiSignalsExportExcelRouteImport } from './routes/api/signals/export/excel'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiConfigRoute = ApiConfigRouteImport.update({
+  id: '/api/config',
+  path: '/api/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScannerRunRoute = ApiScannerRunRouteImport.update({
+  id: '/api/scanner/run',
+  path: '/api/scanner/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScannerStateRoute = ApiScannerStateRouteImport.update({
+  id: '/api/scanner/state',
+  path: '/api/scanner/state',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignalsIndexRoute = ApiSignalsIndexRouteImport.update({
+  id: '/api/signals/',
+  path: '/api/signals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksScanRoute = ApiPublicHooksScanRouteImport.update({
+  id: '/api/public/hooks/scan',
+  path: '/api/public/hooks/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignalsSymbolIndexRoute = ApiSignalsSymbolIndexRouteImport.update({
+  id: '/api/signals/$symbol/',
+  path: '/api/signals/$symbol/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignalsSymbolAutoEnrichRoute =
+  ApiSignalsSymbolAutoEnrichRouteImport.update({
+    id: '/api/signals/$symbol/auto-enrich',
+    path: '/api/signals/$symbol/auto-enrich',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiSignalsSymbolExplainRoute = ApiSignalsSymbolExplainRouteImport.update({
+  id: '/api/signals/$symbol/explain',
+  path: '/api/signals/$symbol/explain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignalsSymbolReanalyzeRoute =
+  ApiSignalsSymbolReanalyzeRouteImport.update({
+    id: '/api/signals/$symbol/reanalyze',
+    path: '/api/signals/$symbol/reanalyze',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiSignalsSymbolVisualizeRoute =
+  ApiSignalsSymbolVisualizeRouteImport.update({
+    id: '/api/signals/$symbol/visualize',
+    path: '/api/signals/$symbol/visualize',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiSignalsAnalyzeSymbolRoute = ApiSignalsAnalyzeSymbolRouteImport.update({
+  id: '/api/signals/analyze/$symbol',
+  path: '/api/signals/analyze/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignalsExportExcelRoute = ApiSignalsExportExcelRouteImport.update({
+  id: '/api/signals/export/excel',
+  path: '/api/signals/export/excel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/config': typeof ApiConfigRoute
+  '/api/scanner/run': typeof ApiScannerRunRoute
+  '/api/scanner/state': typeof ApiScannerStateRoute
+  '/api/signals/': typeof ApiSignalsIndexRoute
+  '/api/public/hooks/scan': typeof ApiPublicHooksScanRoute
+  '/api/signals/$symbol/auto-enrich': typeof ApiSignalsSymbolAutoEnrichRoute
+  '/api/signals/$symbol/explain': typeof ApiSignalsSymbolExplainRoute
+  '/api/signals/$symbol/reanalyze': typeof ApiSignalsSymbolReanalyzeRoute
+  '/api/signals/$symbol/visualize': typeof ApiSignalsSymbolVisualizeRoute
+  '/api/signals/analyze/$symbol': typeof ApiSignalsAnalyzeSymbolRoute
+  '/api/signals/export/excel': typeof ApiSignalsExportExcelRoute
+  '/api/signals/$symbol/': typeof ApiSignalsSymbolIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/config': typeof ApiConfigRoute
+  '/api/scanner/run': typeof ApiScannerRunRoute
+  '/api/scanner/state': typeof ApiScannerStateRoute
+  '/api/signals': typeof ApiSignalsIndexRoute
+  '/api/public/hooks/scan': typeof ApiPublicHooksScanRoute
+  '/api/signals/$symbol/auto-enrich': typeof ApiSignalsSymbolAutoEnrichRoute
+  '/api/signals/$symbol/explain': typeof ApiSignalsSymbolExplainRoute
+  '/api/signals/$symbol/reanalyze': typeof ApiSignalsSymbolReanalyzeRoute
+  '/api/signals/$symbol/visualize': typeof ApiSignalsSymbolVisualizeRoute
+  '/api/signals/analyze/$symbol': typeof ApiSignalsAnalyzeSymbolRoute
+  '/api/signals/export/excel': typeof ApiSignalsExportExcelRoute
+  '/api/signals/$symbol': typeof ApiSignalsSymbolIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/config': typeof ApiConfigRoute
+  '/api/scanner/run': typeof ApiScannerRunRoute
+  '/api/scanner/state': typeof ApiScannerStateRoute
+  '/api/signals/': typeof ApiSignalsIndexRoute
+  '/api/public/hooks/scan': typeof ApiPublicHooksScanRoute
+  '/api/signals/$symbol/auto-enrich': typeof ApiSignalsSymbolAutoEnrichRoute
+  '/api/signals/$symbol/explain': typeof ApiSignalsSymbolExplainRoute
+  '/api/signals/$symbol/reanalyze': typeof ApiSignalsSymbolReanalyzeRoute
+  '/api/signals/$symbol/visualize': typeof ApiSignalsSymbolVisualizeRoute
+  '/api/signals/analyze/$symbol': typeof ApiSignalsAnalyzeSymbolRoute
+  '/api/signals/export/excel': typeof ApiSignalsExportExcelRoute
+  '/api/signals/$symbol/': typeof ApiSignalsSymbolIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/api/config'
+    | '/api/scanner/run'
+    | '/api/scanner/state'
+    | '/api/signals/'
+    | '/api/public/hooks/scan'
+    | '/api/signals/$symbol/auto-enrich'
+    | '/api/signals/$symbol/explain'
+    | '/api/signals/$symbol/reanalyze'
+    | '/api/signals/$symbol/visualize'
+    | '/api/signals/analyze/$symbol'
+    | '/api/signals/export/excel'
+    | '/api/signals/$symbol/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/api/config'
+    | '/api/scanner/run'
+    | '/api/scanner/state'
+    | '/api/signals'
+    | '/api/public/hooks/scan'
+    | '/api/signals/$symbol/auto-enrich'
+    | '/api/signals/$symbol/explain'
+    | '/api/signals/$symbol/reanalyze'
+    | '/api/signals/$symbol/visualize'
+    | '/api/signals/analyze/$symbol'
+    | '/api/signals/export/excel'
+    | '/api/signals/$symbol'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/api/config'
+    | '/api/scanner/run'
+    | '/api/scanner/state'
+    | '/api/signals/'
+    | '/api/public/hooks/scan'
+    | '/api/signals/$symbol/auto-enrich'
+    | '/api/signals/$symbol/explain'
+    | '/api/signals/$symbol/reanalyze'
+    | '/api/signals/$symbol/visualize'
+    | '/api/signals/analyze/$symbol'
+    | '/api/signals/export/excel'
+    | '/api/signals/$symbol/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  ApiConfigRoute: typeof ApiConfigRoute
+  ApiScannerRunRoute: typeof ApiScannerRunRoute
+  ApiScannerStateRoute: typeof ApiScannerStateRoute
+  ApiSignalsIndexRoute: typeof ApiSignalsIndexRoute
+  ApiPublicHooksScanRoute: typeof ApiPublicHooksScanRoute
+  ApiSignalsSymbolAutoEnrichRoute: typeof ApiSignalsSymbolAutoEnrichRoute
+  ApiSignalsSymbolExplainRoute: typeof ApiSignalsSymbolExplainRoute
+  ApiSignalsSymbolReanalyzeRoute: typeof ApiSignalsSymbolReanalyzeRoute
+  ApiSignalsSymbolVisualizeRoute: typeof ApiSignalsSymbolVisualizeRoute
+  ApiSignalsAnalyzeSymbolRoute: typeof ApiSignalsAnalyzeSymbolRoute
+  ApiSignalsExportExcelRoute: typeof ApiSignalsExportExcelRoute
+  ApiSignalsSymbolIndexRoute: typeof ApiSignalsSymbolIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +224,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/config': {
+      id: '/api/config'
+      path: '/api/config'
+      fullPath: '/api/config'
+      preLoaderRoute: typeof ApiConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scanner/run': {
+      id: '/api/scanner/run'
+      path: '/api/scanner/run'
+      fullPath: '/api/scanner/run'
+      preLoaderRoute: typeof ApiScannerRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scanner/state': {
+      id: '/api/scanner/state'
+      path: '/api/scanner/state'
+      fullPath: '/api/scanner/state'
+      preLoaderRoute: typeof ApiScannerStateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/': {
+      id: '/api/signals/'
+      path: '/api/signals'
+      fullPath: '/api/signals/'
+      preLoaderRoute: typeof ApiSignalsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/scan': {
+      id: '/api/public/hooks/scan'
+      path: '/api/public/hooks/scan'
+      fullPath: '/api/public/hooks/scan'
+      preLoaderRoute: typeof ApiPublicHooksScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/$symbol/': {
+      id: '/api/signals/$symbol/'
+      path: '/api/signals/$symbol'
+      fullPath: '/api/signals/$symbol/'
+      preLoaderRoute: typeof ApiSignalsSymbolIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/$symbol/auto-enrich': {
+      id: '/api/signals/$symbol/auto-enrich'
+      path: '/api/signals/$symbol/auto-enrich'
+      fullPath: '/api/signals/$symbol/auto-enrich'
+      preLoaderRoute: typeof ApiSignalsSymbolAutoEnrichRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/$symbol/explain': {
+      id: '/api/signals/$symbol/explain'
+      path: '/api/signals/$symbol/explain'
+      fullPath: '/api/signals/$symbol/explain'
+      preLoaderRoute: typeof ApiSignalsSymbolExplainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/$symbol/reanalyze': {
+      id: '/api/signals/$symbol/reanalyze'
+      path: '/api/signals/$symbol/reanalyze'
+      fullPath: '/api/signals/$symbol/reanalyze'
+      preLoaderRoute: typeof ApiSignalsSymbolReanalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/$symbol/visualize': {
+      id: '/api/signals/$symbol/visualize'
+      path: '/api/signals/$symbol/visualize'
+      fullPath: '/api/signals/$symbol/visualize'
+      preLoaderRoute: typeof ApiSignalsSymbolVisualizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/analyze/$symbol': {
+      id: '/api/signals/analyze/$symbol'
+      path: '/api/signals/analyze/$symbol'
+      fullPath: '/api/signals/analyze/$symbol'
+      preLoaderRoute: typeof ApiSignalsAnalyzeSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/signals/export/excel': {
+      id: '/api/signals/export/excel'
+      path: '/api/signals/export/excel'
+      fullPath: '/api/signals/export/excel'
+      preLoaderRoute: typeof ApiSignalsExportExcelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  ApiConfigRoute: ApiConfigRoute,
+  ApiScannerRunRoute: ApiScannerRunRoute,
+  ApiScannerStateRoute: ApiScannerStateRoute,
+  ApiSignalsIndexRoute: ApiSignalsIndexRoute,
+  ApiPublicHooksScanRoute: ApiPublicHooksScanRoute,
+  ApiSignalsSymbolAutoEnrichRoute: ApiSignalsSymbolAutoEnrichRoute,
+  ApiSignalsSymbolExplainRoute: ApiSignalsSymbolExplainRoute,
+  ApiSignalsSymbolReanalyzeRoute: ApiSignalsSymbolReanalyzeRoute,
+  ApiSignalsSymbolVisualizeRoute: ApiSignalsSymbolVisualizeRoute,
+  ApiSignalsAnalyzeSymbolRoute: ApiSignalsAnalyzeSymbolRoute,
+  ApiSignalsExportExcelRoute: ApiSignalsExportExcelRoute,
+  ApiSignalsSymbolIndexRoute: ApiSignalsSymbolIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
