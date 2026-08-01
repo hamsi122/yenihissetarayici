@@ -9,6 +9,8 @@ export type Bar = {
 
 export type PatternMatch = {
   name: string;
+  /** Formasyon tipi anahtarı (görsel çizimi ve eşleştirme için sabit, dile bağımsız). */
+  type: string;
   direction: string;
   confirmed: boolean;
   neckline: number | null;

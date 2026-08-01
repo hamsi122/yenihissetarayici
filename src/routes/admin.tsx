@@ -149,6 +149,8 @@ function AdminPage() {
 
   const stats = data?.stats;
   const accuracy = stats?.accuracy;
+  const scanner = stats?.scanner;
+  const formatDate = (value?: string | null) => (value ? new Date(value).toLocaleString("tr-TR") : "—");
 
   return (
     <main className="min-h-screen space-y-5 bg-background p-4 text-foreground md:p-6" data-testid="admin-dashboard-page">
@@ -173,6 +175,55 @@ function AdminPage() {
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="border-border/70 bg-card/50 lg:col-span-2" data-testid="admin-scan-card">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base">Günlük Kapsamlı Tarama</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 p-4 pt-0">
+            <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+              <div className="rounded-sm border border-border/60 p-2">
+                <p className="text-muted-foreground">Durum</p>
+                <p className="font-mono text-sm" data-testid="admin-scan-status">
+                  {scanner?.running ? "Tarama sürüyor" : "Beklemede"}
+                </p>
+              </div>
+              <div className="rounded-sm border border-border/60 p-2">
+                <p className="text-muted-foreground">Son Tarama</p>
+                <p className="font-mono text-sm" data-testid="admin-scan-last-run">{formatDate(scanner?.last_run)}</p>
+              </div>
+              <div className="rounded-sm border border-border/60 p-2">
+                <p className="text-muted-foreground">Taranan Hisse</p>
+                <p className="font-mono text-sm" data-testid="admin-scan-count">{scanner?.last_scanned_count ?? 0}</p>
+              </div>
+              <div className="rounded-sm border border-border/60 p-2">
+                <p className="text-muted-foreground">Süre</p>
+                <p className="font-mono text-sm" data-testid="admin-scan-duration">
+                  {scanner?.last_duration_seconds ? `${Math.round(scanner.last_duration_seconds)} sn` : "—"}
+                </p>
+              </div>
+            </div>
+            {scanner?.last_error ? (
+              <p className="rounded-sm border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive" data-testid="admin-scan-error">
+                Son hata: {scanner.last_error}
+              </p>
+            ) : null}
+            <div className="space-y-1" data-testid="admin-scan-results">
+              <p className="text-xs font-semibold text-muted-foreground">Son güncellenen sinyaller</p>
+              {(stats?.recent_signals ?? []).map((row: any) => (
+                <div key={row.symbol} className="flex items-center justify-between rounded-sm border border-border/60 p-2 text-xs">
+                  <span className="font-mono">{row.symbol} · {row.market}</span>
+                  <span className="font-mono">
+                    {row.action} · {row.bullish_score} · {formatDate(row.updated_at)}
+                  </span>
+                </div>
+              ))}
+              {!(stats?.recent_signals ?? []).length ? (
+                <p className="text-xs text-muted-foreground">Henüz tarama sonucu yok.</p>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-border/70 bg-card/50" data-testid="admin-accuracy-card">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-base">Formasyon İsabet Oranı</CardTitle>
