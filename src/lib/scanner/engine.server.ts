@@ -70,7 +70,17 @@ export async function analyzeSymbol(symbol: string): Promise<SignalDoc | null> {
   const upper = symbol.toUpperCase();
   const bars = await fetchSymbolOhlcv(upper);
   if (!bars) return null;
-  const fundamentals = await fetchFundamentals(upper);
+  let fundamentals = await fetchFundamentals(upper);
+  // Veri sağlayıcı temel verileri döndüremediğinde (401/429) skor sıfıra düşerdi ve aynı hisse
+  // otomatik tarama ile manuel analizde farklı sonuç verirdi. Bu durumda son bilinen temel veri seti
+  // yeniden kullanılır; böylece sonuçlar tekrarlanabilir olur.
+  if (fundamentals.pe === null && fundamentals.current_ratio === null) {
+    const previous = await fetchSignalDocument(upper);
+    const cached = previous?.["fundamental"] as Record<string, any> | undefined;
+    if (cached && (cached["pe"] !== null || cached["current_ratio"] !== null)) {
+      fundamentals = { ...cached, notes: [...(cached["notes"] ?? []), "Temel veriler önbellekten alındı."] } as typeof fundamentals;
+    }
+  }
   const doc = buildSignal(upper, marketForSymbol(upper), bars, fundamentals);
   await storeSignal(doc);
   return doc;
