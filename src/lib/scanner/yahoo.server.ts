@@ -146,6 +146,111 @@ const toFloat = (value: unknown): number | null => {
 
 export type Fundamentals = ReturnType<typeof buildFundamentals>;
 
+type FundamentalScoreInput = {
+  pe: number | null;
+  pb: number | null;
+  sector_pe_avg: number;
+  current_ratio: number | null;
+  debt_to_equity: number | null;
+  eps_growth_qoq: number | null;
+};
+
+/**
+ * Temel skor daima aynı alanlardan yeniden hesaplanır; böylece veriler kısmen önbellekten
+ * gelse bile otomatik tarama ile istek üzerine analiz aynı sonucu üretir.
+ */
+export function scoreFundamentals(f: FundamentalScoreInput) {
+  let qualityScore = 0;
+  const notes: string[] = [];
+  let hardCapTrigger = false;
+
+  if (f.pe !== null && f.pb !== null && f.pe < f.sector_pe_avg && f.pb < 3) {
+    qualityScore += 35;
+    notes.push("Değerleme metrikleri sektör ortalamasına göre avantajlı.");
+  } else {
+    notes.push("Değerleme metriklerinde nötr/negatif görünüm var.");
+  }
+
+  if (f.current_ratio !== null && f.current_ratio >= 1.0 && (f.debt_to_equity === null || f.debt_to_equity < 220)) {
+    qualityScore += 30;
+    notes.push("Likidite ve borç dengesi kabul edilebilir seviyede.");
+  } else {
+    notes.push("Likidite veya borç dengesi ideal eşiklerin altında.");
+  }
+
+  if (f.eps_growth_qoq !== null && f.eps_growth_qoq > 0) {
+    qualityScore += 35;
+    notes.push("Çeyreklik EPS büyümesi pozitif.");
+  } else {
+    notes.push("EPS büyümesinde zayıflık gözleniyor.");
+  }
+
+  if (f.current_ratio !== null && f.current_ratio < 0.75) {
+    hardCapTrigger = true;
+    notes.push("Cari oran 0.75 altında: skora güvenlik sınırı uygulanır.");
+  }
+  if (f.eps_growth_qoq !== null && f.eps_growth_qoq < 0) {
+    hardCapTrigger = true;
+    notes.push("EPS büyümesi negatif: skora güvenlik sınırı uygulanır.");
+  }
+
+  return { score: Math.max(0, Math.min(100, qualityScore)), hard_cap_trigger: hardCapTrigger, notes };
+}
+
+const FUNDAMENTAL_NUMERIC_KEYS = [
+  "pe",
+  "pb",
+  "market_cap",
+  "current_ratio",
+  "debt_to_equity",
+  "eps_growth_qoq",
+  "roe",
+  "net_profit_margin",
+  "dividend_yield",
+  "quick_ratio",
+  "interest_coverage",
+  "gross_margin",
+  "operating_margin",
+  "fcf_margin",
+  "revenue_growth_3y",
+  "peg_ratio",
+  "earnings_yield",
+  "payout_ratio",
+  "eps",
+  "beta",
+  "altman_z",
+  "piotroski_f",
+] as const;
+
+/**
+ * Canlı kaynak bazı alanları döndüremediğinde eksik alanlar son bilinen değerlerle tamamlanır ve
+ * skor yeniden hesaplanır. Aksi halde aynı hisse, veri sağlayıcının o anki durumuna göre farklı
+ * skor üretiyordu.
+ */
+export function mergeFundamentals(fresh: Fundamentals, cached: Record<string, any> | null | undefined): Fundamentals {
+  if (!cached) return fresh;
+  const merged: Record<string, any> = { ...fresh };
+  let usedCache = false;
+  for (const key of FUNDAMENTAL_NUMERIC_KEYS) {
+    const current = merged[key];
+    const previous = cached[key];
+    if ((current === null || current === undefined) && typeof previous === "number" && Number.isFinite(previous)) {
+      merged[key] = previous;
+      usedCache = true;
+    }
+  }
+  if ((merged["sector"] === "Unknown" || !merged["sector"]) && typeof cached["sector"] === "string" && cached["sector"] !== "Unknown") {
+    merged["sector"] = cached["sector"];
+    merged["sector_pe_avg"] = SECTOR_PE_BENCHMARK[cached["sector"]] ?? merged["sector_pe_avg"];
+    usedCache = true;
+  }
+  const scored = scoreFundamentals(merged as FundamentalScoreInput);
+  merged["score"] = scored.score;
+  merged["hard_cap_trigger"] = scored.hard_cap_trigger;
+  merged["notes"] = usedCache ? [...scored.notes, "Eksik temel veriler son bilinen değerlerle tamamlandı."] : scored.notes;
+  return merged as Fundamentals;
+}
+
 function buildFundamentals(info: Record<string, unknown>) {
   const pe = toFloat(info["trailingPE"]) ?? toFloat(info["forwardPE"]);
   const pb = toFloat(info["priceToBook"]);
@@ -159,39 +264,14 @@ function buildFundamentals(info: Record<string, unknown>) {
   const sector = String(info["sector"] ?? "Unknown");
   const sectorPeAvg = SECTOR_PE_BENCHMARK[sector] ?? 22.0;
 
-  let qualityScore = 0;
-  const notes: string[] = [];
-  let hardCapTrigger = false;
-
-  if (pe !== null && pb !== null && pe < sectorPeAvg && pb < 3) {
-    qualityScore += 35;
-    notes.push("Değerleme metrikleri sektör ortalamasına göre avantajlı.");
-  } else {
-    notes.push("Değerleme metriklerinde nötr/negatif görünüm var.");
-  }
-
-  if (currentRatio !== null && currentRatio >= 1.0 && (debtToEquity === null || debtToEquity < 220)) {
-    qualityScore += 30;
-    notes.push("Likidite ve borç dengesi kabul edilebilir seviyede.");
-  } else {
-    notes.push("Likidite veya borç dengesi ideal eşiklerin altında.");
-  }
-
-  if (epsGrowth !== null && epsGrowth > 0) {
-    qualityScore += 35;
-    notes.push("Çeyreklik EPS büyümesi pozitif.");
-  } else {
-    notes.push("EPS büyümesinde zayıflık gözleniyor.");
-  }
-
-  if (currentRatio !== null && currentRatio < 0.75) {
-    hardCapTrigger = true;
-    notes.push("Cari oran 0.75 altında: skora güvenlik sınırı uygulanır.");
-  }
-  if (epsGrowth !== null && epsGrowth < 0) {
-    hardCapTrigger = true;
-    notes.push("EPS büyümesi negatif: skora güvenlik sınırı uygulanır.");
-  }
+  const scored = scoreFundamentals({
+    pe: round(pe),
+    pb: round(pb),
+    sector_pe_avg: sectorPeAvg,
+    current_ratio: round(currentRatio),
+    debt_to_equity: round(debtToEquity),
+    eps_growth_qoq: round(epsGrowth),
+  });
 
   return {
     pe: round(pe),
@@ -218,9 +298,9 @@ function buildFundamentals(info: Record<string, unknown>) {
     beta: round(toFloat(info["beta"])),
     altman_z: round(toFloat(info["altmanZ"])),
     piotroski_f: round(toFloat(info["piotroskiF"])),
-    score: Math.max(0, Math.min(100, qualityScore)),
-    hard_cap_trigger: hardCapTrigger,
-    notes,
+    score: scored.score,
+    hard_cap_trigger: scored.hard_cap_trigger,
+    notes: scored.notes,
   };
 }
 
