@@ -75,7 +75,8 @@ export function detectDoubleTopBottom(
     const confirmed = latestClose < neckline && breakoutIdx !== null && volumeValidated;
     const targetPrice = neckline - (Math.max(leftPeak, rightPeak) - neckline);
     patterns.push({
-      name: "Double Top",
+      name: "Çift Tepe",
+      type: "double_top",
       direction: "bearish",
       confirmed,
       neckline: r4(neckline),
@@ -113,7 +114,8 @@ export function detectDoubleTopBottom(
     const confirmed = latestClose > neckline && breakoutIdx !== null && volumeValidated;
     const targetPrice = neckline + (neckline - Math.min(leftBottom, rightBottom));
     patterns.push({
-      name: "Double Bottom",
+      name: "Çift Dip",
+      type: "double_bottom",
       direction: "bullish",
       confirmed,
       neckline: r4(neckline),
@@ -188,7 +190,8 @@ export function detectHeadShoulders(bars: Bar[], highs: number[], lows: number[]
     const confirmed = close[close.length - 1]! < necklineLatest && breakoutIdx !== null && volumeValidated;
     const targetPrice = necklineLatest - (headVal - Math.min(leftTrough, rightTrough));
     patterns.push({
-      name: "Head and Shoulders",
+      name: "Omuz Baş Omuz (OBO)",
+      type: "head_shoulders",
       direction: "bearish",
       confirmed,
       neckline: r4(necklineLatest),
@@ -244,7 +247,8 @@ export function detectHeadShoulders(bars: Bar[], highs: number[], lows: number[]
     const confirmed = close[close.length - 1]! > necklineLatest && breakoutIdx !== null && volumeValidated;
     const targetPrice = necklineLatest + (Math.max(leftPeak, rightPeak) - headVal);
     patterns.push({
-      name: "Inverse Head and Shoulders",
+      name: "Ters Omuz Baş Omuz (TOBO)",
+      type: "inverse_head_shoulders",
       direction: "bullish",
       confirmed,
       neckline: r4(necklineLatest),
@@ -331,7 +335,8 @@ export function detectSymmetricalTriangle(bars: Bar[], highs: number[], lows: nu
         : latestClose;
 
   patterns.push({
-    name: "Symmetrical Triangle",
+    name: "Simetrik Üçgen",
+      type: "symmetrical_triangle",
     direction,
     confirmed,
     neckline: r4((upperLatestEval + lowerLatestEval) / 2),
@@ -395,7 +400,8 @@ export function detectCupHandle(bars: Bar[], highs: number[], lows: number[]): P
     const targetPrice = neckline + (neckline - bottomPrice);
 
     patterns.push({
-      name: "Cup and Handle",
+      name: "Fincan ve Kulp",
+      type: "cup_handle",
       direction: "bullish",
       confirmed,
       neckline: r4(neckline),
