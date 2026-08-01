@@ -158,7 +158,8 @@ async function computePatternAccuracy() {
 }
 
 export async function getAdminStats() {
-  const [totalViews, views24h, views7d, uniqueSessions, errors, signalCount, accuracy] = await Promise.all([
+  const [totalViews, views24h, views7d, uniqueSessions, errors, signalCount, accuracy, scannerRow, latestSignals] =
+    await Promise.all([
     supabaseAdmin.from("page_views").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", daysAgo(1)),
     supabaseAdmin.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", daysAgo(7)),
@@ -166,6 +167,12 @@ export async function getAdminStats() {
     supabaseAdmin.from("error_logs").select("id,message,source,created_at").order("created_at", { ascending: false }).limit(25),
     supabaseAdmin.from("signals").select("*", { count: "exact", head: true }),
     computePatternAccuracy(),
+    supabaseAdmin.from("scanner_state").select("*").eq("id", 1).maybeSingle(),
+    supabaseAdmin
+      .from("signals")
+      .select("symbol,market,action,bullish_score,updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(15),
   ]);
 
   const sessions = new Set((uniqueSessions.data ?? []).map((r) => r.session_id).filter(Boolean));
@@ -182,5 +189,14 @@ export async function getAdminStats() {
     error_count: errorCount ?? 0,
     recent_errors: errors.data ?? [],
     accuracy,
+    scanner: {
+      running: Boolean(scannerRow.data?.running),
+      last_run: scannerRow.data?.last_run ?? null,
+      last_error: scannerRow.data?.last_error ?? null,
+      last_duration_seconds: scannerRow.data?.last_duration_seconds ?? null,
+      last_scanned_count: scannerRow.data?.last_scanned_count ?? 0,
+      cursor_index: scannerRow.data?.cursor_index ?? 0,
+    },
+    recent_signals: latestSignals.data ?? [],
   };
 }
