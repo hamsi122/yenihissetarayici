@@ -111,7 +111,7 @@ function AdminPage() {
       <main className="flex min-h-screen items-center justify-center bg-background p-4" data-testid="admin-login-page">
         <Card className="w-full max-w-sm border-border/70 bg-card/60">
           <CardHeader>
-            <CardTitle className="font-heading text-xl font-black">Yönetim Paneli Girişi</CardTitle>
+            <CardTitle className="font-heading text-xl font-black">Admin Paneli Girişi</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={handleLogin} data-testid="admin-login-form">
