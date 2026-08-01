@@ -130,6 +130,10 @@ export async function fetchSymbolOhlcv(symbol: string): Promise<Bar[] | null> {
   }
   const deduped = new Map<string, Bar>();
   for (const bar of bars) deduped.set(bar.date, bar);
+  // Gün içi (henüz kapanmamış) bar sürekli değiştiği için hesaba katılmaz; böylece aynı hisse
+  // gün boyunca aynı skoru üretir ve otomatik tarama ile manuel analiz birebir örtüşür.
+  const today = new Date().toISOString().slice(0, 10);
+  deduped.delete(today);
   const final = Array.from(deduped.values()).sort((a, b) => a.date.localeCompare(b.date));
   if (final.length < 120) return null;
   return final;
