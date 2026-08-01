@@ -98,6 +98,7 @@ export type Database = {
           last_run: string | null
           last_scanned_count: number
           running: boolean
+          started_at: string | null
         }
         Insert: {
           cursor_index?: number
@@ -107,6 +108,7 @@ export type Database = {
           last_run?: string | null
           last_scanned_count?: number
           running?: boolean
+          started_at?: string | null
         }
         Update: {
           cursor_index?: number
@@ -116,6 +118,7 @@ export type Database = {
           last_run?: string | null
           last_scanned_count?: number
           running?: boolean
+          started_at?: string | null
         }
         Relationships: []
       }
