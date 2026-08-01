@@ -39,6 +39,15 @@ export function marketForSymbol(symbol: string): "US" | "BIST" {
   return symbol.toUpperCase().endsWith(".IS") ? "BIST" : "US";
 }
 
+const BIST_BASE_SET = new Set(MARKET_UNIVERSE.BIST.map((s) => s.replace(/\.IS$/i, "")));
+
+/** Aynı hissenin iki farklı kayıt olarak saklanmasını önlemek için kanonik sembol biçimi. */
+export function normalizeSymbol(symbol: string): string {
+  const upper = symbol.trim().toUpperCase();
+  if (upper.endsWith(".IS")) return upper;
+  return BIST_BASE_SET.has(upper) ? `${upper}.IS` : upper;
+}
+
 export const SECTOR_PE_BENCHMARK: Record<string, number> = {
   Technology: 28,
   "Financial Services": 14,
