@@ -1,24 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ClientOnly } from "@tanstack/react-router";
+import { Toaster } from "@/components/ui/sonner";
+import DashboardPage from "@/pages/DashboardPage";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Hisse Tarayıcı — Formasyon ve Sinyal Paneli" },
+      {
+        name: "description",
+        content:
+          "NASDAQ ve BIST hisseleri için formasyon tespiti, teknik sinyaller ve AI destekli açıklamalar sunan tarama paneli.",
+      },
+      { property: "og:title", content: "Hisse Tarayıcı — Formasyon ve Sinyal Paneli" },
+      {
+        property: "og:description",
+        content: "Formasyon tespiti, teknik sinyaller ve AI destekli hisse analiz paneli.",
+      },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="App min-h-screen bg-background text-foreground" data-testid="app-root-container">
+      <ClientOnly fallback={null}>
+        <DashboardPage />
+      </ClientOnly>
+      <Toaster position="top-right" />
     </div>
   );
 }
