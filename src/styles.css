@@ -185,3 +185,13 @@
         transform: translateY(0);
     }
 }
+
+/* Edit with Lovable butonunu kaldırır */
+[href*="lovable.dev"],
+[class*="lovable"],
+[id*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
