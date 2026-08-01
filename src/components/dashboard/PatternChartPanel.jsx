@@ -132,7 +132,7 @@ export const PatternChartPanel = ({ signal }) => {
 
         <Card className="border-border/70 bg-card/45" data-testid="indicator-snapshot-card">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-base" data-testid="indicator-snapshot-title">Gösterge Snapshot</CardTitle>
+            <CardTitle className="text-base" data-testid="indicator-snapshot-title">Teknik Analiz Özeti</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 p-4 pt-2 text-xs" data-testid="indicator-snapshot-grid">
             <div className="rounded-sm border border-border/60 p-2" data-testid="indicator-rsi-box">
