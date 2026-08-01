@@ -212,6 +212,18 @@ export function buildSignal(
     ...detectCupHandle(bars, highs, lows),
   ];
   const confirmedPatterns = patternCandidates.filter((p) => p.confirmed);
+  // Geometri indeksleri tam bar dizisine göredir; grafik yalnızca son barları gösterdiği için
+  // her indeksin tarih karşılığı da saklanır ve çizim tarih eşleşmesiyle yapılır.
+  for (const pattern of patternCandidates) {
+    const dates: Record<string, string> = {};
+    for (const [key, value] of Object.entries(pattern.geometry)) {
+      if (!key.endsWith("_index")) continue;
+      if (typeof value === "number" && value >= 0 && value < bars.length) {
+        dates[key.replace(/_index$/, "_date")] = bars[value]!.date;
+      }
+    }
+    pattern.geometry_dates = dates;
+  }
   const volumeAnalysis = buildVolumeAnalysis(bars, confirmedPatterns);
 
   const last = bars.length - 1;

@@ -18,6 +18,8 @@ export type PatternMatch = {
   volume_validated: boolean;
   detail: string;
   geometry: Record<string, number | null>;
+  /** Geometri indekslerinin tarih karşılıkları; grafik dilimlemesinden bağımsız çizim için. */
+  geometry_dates?: Record<string, string>;
 };
 
 export type SignalDoc = Record<string, unknown> & {

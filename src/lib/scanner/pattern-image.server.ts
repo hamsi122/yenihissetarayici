@@ -87,10 +87,20 @@ export function buildPatternImage(doc: Record<string, any>): string {
   }).join("");
 
   const geometry = (primary?.["geometry"] ?? {}) as Record<string, any>;
+  const geometryDates = (primary?.["geometry_dates"] ?? {}) as Record<string, string>;
+  const dateIndex = new Map<string, number>();
+  points.forEach((point, i) => {
+    if (point.date) dateIndex.set(String(point.date), i);
+  });
   const offset = history.length - points.length;
-  /** Global bar index -> yerel (kırpılmış) index. */
-  const local = (value: unknown): number | null => {
-    const num = Number(value);
+  /**
+   * Geometri indeksleri tam bar dizisine göredir. Önce tarih eşleşmesi denenir,
+   * tarih yoksa (eski kayıtlar) indeks farkıyla yaklaşık konum kullanılır.
+   */
+  const local = (key: string): number | null => {
+    const date = geometryDates[key.replace(/_index$/, "_date")];
+    if (date && dateIndex.has(date)) return dateIndex.get(date)!;
+    const num = Number(geometry[key]);
     if (!Number.isFinite(num)) return null;
     const idx = num - offset;
     return idx >= 0 && idx < closes.length ? idx : null;
@@ -116,11 +126,11 @@ export function buildPatternImage(doc: Record<string, any>): string {
     );
   };
 
-  const leftIdx = local(geometry["left_index"]);
-  const rightIdx = local(geometry["right_index"]);
-  const headIdx = local(geometry["head_index"]);
-  const bottomIdx = local(geometry["bottom_index"]);
-  const handleIdx = local(geometry["handle_index"]);
+  const leftIdx = local("left_index");
+  const rightIdx = local("right_index");
+  const headIdx = local("head_index");
+  const bottomIdx = local("bottom_index");
+  const handleIdx = local("handle_index");
 
   if (type === "double_top" || type === "double_bottom") {
     const top = type === "double_top";
@@ -134,10 +144,10 @@ export function buildPatternImage(doc: Record<string, any>): string {
     segment(leftIdx, Number(geometry["left_price"]), headIdx, Number(geometry["head_price"]));
     segment(headIdx, Number(geometry["head_price"]), rightIdx, Number(geometry["right_price"]));
   } else if (type === "symmetrical_triangle") {
-    const us = local(geometry["upper_start_index"]);
-    const ue = local(geometry["upper_end_index"]);
-    const ls = local(geometry["lower_start_index"]);
-    const le = local(geometry["lower_end_index"]);
+    const us = local("upper_start_index");
+    const ue = local("upper_end_index");
+    const ls = local("lower_start_index");
+    const le = local("lower_end_index");
     segment(us, Number(geometry["upper_start_price"]), ue, Number(geometry["upper_end_price"]));
     segment(ls, Number(geometry["lower_start_price"]), le, Number(geometry["lower_end_price"]));
     marker(ue, "Direnç", Number(geometry["upper_end_price"]));
@@ -160,8 +170,8 @@ export function buildPatternImage(doc: Record<string, any>): string {
   }
 
   // Boyun / kırılım çizgisi
-  const necklineStart = local(geometry["neckline_start_index"]);
-  const necklineEnd = local(geometry["neckline_end_index"]);
+  const necklineStart = local("neckline_start_index");
+  const necklineEnd = local("neckline_end_index");
   const necklineStartPrice = Number(geometry["neckline_start_price"]);
   const necklineEndPrice = Number(geometry["neckline_end_price"]);
   const neckline = Number(primary?.["neckline"]);
@@ -194,7 +204,7 @@ export function buildPatternImage(doc: Record<string, any>): string {
 <text x="${padLeft + 6}" y="${(y(targetPrice) - 6).toFixed(1)}" fill="#38bdf8" font-family="monospace" font-size="11">Hedef ${targetPrice.toFixed(2)}</text>`
     : "";
 
-  const localBreakout = local(geometry["breakout_index"]);
+  const localBreakout = local("breakout_index");
   const breakoutSvg =
     localBreakout !== null
       ? `<circle cx="${x(localBreakout).toFixed(1)}" cy="${y(priceAt(localBreakout)).toFixed(1)}" r="7" fill="${accent}" fill-opacity="0.25" stroke="${accent}" stroke-width="2"/>
