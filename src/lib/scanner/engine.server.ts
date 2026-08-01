@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { buildSignal } from "./signal.server";
-import { fetchFundamentals, fetchSymbolOhlcv } from "./yahoo.server";
-import { MARKET_UNIVERSE, marketForSymbol } from "./universe";
+import { fetchFundamentals, fetchSymbolOhlcv, mergeFundamentals } from "./yahoo.server";
+import { MARKET_UNIVERSE, marketForSymbol, normalizeSymbol } from "./universe";
 import type { SignalDoc } from "./types";
 
 const BATCH_PER_MARKET = 50;
@@ -52,7 +52,7 @@ export async function storeSignal(doc: SignalDoc) {
 }
 
 export async function fetchSignalDocument(symbol: string): Promise<SignalDoc | null> {
-  const upper = symbol.toUpperCase();
+  const upper = normalizeSymbol(symbol);
   const { data } = await supabaseAdmin.from("signals").select("doc").eq("symbol", upper).maybeSingle();
   if (data?.doc) return data.doc as unknown as SignalDoc;
   if (!upper.endsWith(".IS")) {
@@ -67,20 +67,18 @@ export async function fetchSignalDocument(symbol: string): Promise<SignalDoc | n
 }
 
 export async function analyzeSymbol(symbol: string): Promise<SignalDoc | null> {
-  const upper = symbol.toUpperCase();
+  // Sembol tek bir kanonik biçime indirgenir (ör. THYAO -> THYAO.IS); aksi halde aynı hisse
+  // iki ayrı kayıt olarak farklı skorlarla saklanabiliyordu.
+  const upper = normalizeSymbol(symbol);
   const bars = await fetchSymbolOhlcv(upper);
   if (!bars) return null;
-  let fundamentals = await fetchFundamentals(upper);
-  // Veri sağlayıcı temel verileri döndüremediğinde (401/429) skor sıfıra düşerdi ve aynı hisse
-  // otomatik tarama ile manuel analizde farklı sonuç verirdi. Bu durumda son bilinen temel veri seti
-  // yeniden kullanılır; böylece sonuçlar tekrarlanabilir olur.
-  if (fundamentals.pe === null && fundamentals.current_ratio === null) {
-    const previous = await fetchSignalDocument(upper);
-    const cached = previous?.["fundamental"] as Record<string, any> | undefined;
-    if (cached && (cached["pe"] !== null || cached["current_ratio"] !== null)) {
-      fundamentals = { ...cached, notes: [...(cached["notes"] ?? []), "Temel veriler önbellekten alındı."] } as typeof fundamentals;
-    }
-  }
+  const fresh = await fetchFundamentals(upper);
+  // Veri sağlayıcı alanları kısmen döndürdüğünde (401/429) skor düşerdi ve aynı hisse otomatik
+  // tarama ile manuel analizde farklı sonuç verirdi. Eksik alanlar son bilinen değerlerle
+  // tamamlanır ve temel skor bu birleşik veriden yeniden hesaplanır.
+  const previous = await fetchSignalDocument(upper);
+  const cached = (previous?.["fundamental"] as Record<string, any> | undefined) ?? null;
+  const fundamentals = mergeFundamentals(fresh, cached);
   const doc = buildSignal(upper, marketForSymbol(upper), bars, fundamentals);
   await storeSignal(doc);
   return doc;
