@@ -68,15 +68,6 @@ function AdminPage() {
     })();
   }, [me, loadDashboard]);
 
-  // Canlı verilerin periyodik olarak güncellenmesi (Örn: Her 10 saniyede bir)
-  useEffect(() => {
-    if (!authed) return;
-    const interval = setInterval(() => {
-      loadDashboard();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [authed, loadDashboard]);
-
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -176,13 +167,7 @@ function AdminPage() {
         </Button>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" data-testid="admin-stats-grid">
-        <StatCard
-          label="Canlı Ziyaretçi"
-          value={stats?.active_users ?? 0}
-          hint="Anlık aktif kullanıcı"
-          testId="admin-stat-active-users"
-        />
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats-grid">
         <StatCard
           label="Günlük Giriş"
           value={stats?.page_views_today ?? 0}
@@ -338,7 +323,7 @@ function AdminPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="new-admin-password">Şifre (min 8)</Label>
+              <Label htmlFor="new-admin-password">Şifre (min 8)</Level>
               <Input
                 id="new-admin-password"
                 type="password"
