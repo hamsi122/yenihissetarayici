@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [explaining, setExplaining] = useState(false);
   const [analyzingSymbol, setAnalyzingSymbol] = useState(false);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [refreshCooldown, setRefreshCooldown] = useState(0);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportMarkets, setExportMarkets] = useState(["NASDAQ", "BIST"]);
@@ -124,6 +125,12 @@ export default function DashboardPage() {
     }
 
     setAnalyzingSymbol(true);
+    setAnalyzeProgress(4);
+    // Analiz sunucuda tek adımda tamamlandığı için ilerleme tahmini olarak akıtılır,
+    // istek bitince %100'e çekilir.
+    const progressTimer = setInterval(() => {
+      setAnalyzeProgress((previous) => (previous >= 92 ? 92 : previous + Math.max(1, Math.round((92 - previous) / 10))));
+    }, 300);
     try {
       const analyzed = await analyzeSymbolOnDemand(symbolInput.trim().toUpperCase());
       setMarket("ALL");
@@ -132,12 +139,17 @@ export default function DashboardPage() {
       setSelectedSymbol(analyzed.symbol);
       setIsDetailOpen(true);
       setSymbolInput(analyzed.symbol);
+      setAnalyzeProgress(100);
       toast.success(`${analyzed.symbol} için anlık analiz üretildi.`);
     } catch (error) {
       console.error(error);
+      setAnalyzeProgress(0);
       toast.error("Sembol analiz edilemedi.");
     } finally {
+      clearInterval(progressTimer);
       setAnalyzingSymbol(false);
+      setTimeout(() => setAnalyzeProgress(0), 1200);
+
     }
   };
 
@@ -297,6 +309,7 @@ export default function DashboardPage() {
         onRefreshAll={handleRefreshAll}
         loading={loadingSignals}
         analyzing={analyzingSymbol}
+        analyzeProgress={analyzeProgress}
         refreshCooldown={refreshCooldown}
       />
 
@@ -316,7 +329,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="col-span-12 lg:col-span-3" data-testid="dashboard-right-tradingview-column">
-          <TradingViewPanel signal={selectedSignal} scannerState={scannerState} />
+          <TradingViewPanel signal={selectedSignal} />
         </div>
       </section>
 
