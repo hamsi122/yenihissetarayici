@@ -68,6 +68,15 @@ function AdminPage() {
     })();
   }, [me, loadDashboard]);
 
+  // Canlı verilerin periyodik olarak güncellenmesi (Örn: Her 10 saniyede bir)
+  useEffect(() => {
+    if (!authed) return;
+    const interval = setInterval(() => {
+      loadDashboard();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [authed, loadDashboard]);
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -167,7 +176,13 @@ function AdminPage() {
         </Button>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats-grid">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" data-testid="admin-stats-grid">
+        <StatCard
+          label="Canlı Ziyaretçi"
+          value={stats?.active_users ?? 0}
+          hint="Anlık aktif kullanıcı"
+          testId="admin-stat-active-users"
+        />
         <StatCard
           label="Günlük Giriş"
           value={stats?.page_views_today ?? 0}
@@ -209,7 +224,6 @@ function AdminPage() {
           ) : null}
         </CardContent>
       </Card>
-
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="border-border/70 bg-card/50 lg:col-span-2" data-testid="admin-scan-card">
