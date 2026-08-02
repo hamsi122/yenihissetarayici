@@ -57,7 +57,19 @@ export const trackPageView = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { recordPageView } = await import("./admin/admin.server");
-    await recordPageView(data.path, data.referrer ?? null, data.sessionId ?? null);
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    // Ülke bilgisi edge/CDN başlıklarından okunur; yoksa kayıt "Bilinmiyor" olarak sayılır.
+    const country =
+      getRequestHeader("cf-ipcountry") ||
+      getRequestHeader("x-vercel-ip-country") ||
+      getRequestHeader("x-country-code") ||
+      null;
+    await recordPageView(
+      data.path,
+      data.referrer ?? null,
+      data.sessionId ?? null,
+      country && country !== "XX" ? country.toUpperCase().slice(0, 2) : null,
+    );
     return { ok: true as const };
   });
 
