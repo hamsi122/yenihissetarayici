@@ -1,13 +1,5 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
-//     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
-//     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-// Vercel'de (veya NITRO_PRESET verildiğinde) Cloudflare yerine ilgili preset ile derlenir.
-// Lovable içindeki build'lerde bu ayar yok sayılır.
 const preset = process.env["NITRO_PRESET"] ?? (process.env["VERCEL"] ? "vercel" : undefined);
 
 export default defineConfig({
@@ -16,5 +8,26 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  // Standart Vite performans ve parça (chunk) ayarlarını buraya ekliyoruz:
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 1000, // 500 kB uyarı sınırını 1 MB'a çıkarır
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              if (id.includes("recharts")) {
+                return "vendor-recharts";
+              }
+              if (id.includes("react") || id.includes("scheduler")) {
+                return "vendor-react";
+              }
+              return "vendor";
+            }
+          },
+        },
+      },
+    },
   },
 });
