@@ -9,6 +9,7 @@ import { PatternChartPanel } from "@/components/dashboard/PatternChartPanel";
 import { SignalDetailSheet } from "@/components/dashboard/SignalDetailSheet";
 import { SignalStream } from "@/components/dashboard/SignalStream";
 import { TradingViewPanel } from "@/components/dashboard/TradingViewPanel";
+import {
   autoEnrichSignal,
   analyzeSymbolOnDemand,
   explainSignal,
