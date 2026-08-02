@@ -47,6 +47,7 @@ function AdminPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<any>(null);
+  const [activeUsers, setActiveUsers] = useState<number>(1);
   const [newAdmin, setNewAdmin] = useState({ username: "", password: "" });
   const [adminMessage, setAdminMessage] = useState("");
 
@@ -56,6 +57,9 @@ function AdminPage() {
       setData(result);
       setCurrentUser(result.username);
       setAuthed(true);
+      if (result?.stats?.active_users !== undefined) {
+        setActiveUsers(result.stats.active_users);
+      }
     } catch {
       setAuthed(false);
     }
@@ -68,14 +72,25 @@ function AdminPage() {
     })();
   }, [me, loadDashboard]);
 
-  // Canlı verilerin periyodik olarak güncellenmesi (Örn: Her 10 saniyede bir)
+  // Canlı kullanıcı sayısını saniyede 1 kez güncelleme (1000ms)
   useEffect(() => {
     if (!authed) return;
-    const interval = setInterval(() => {
-      loadDashboard();
-    }, 10000);
+    const interval = setInterval(async () => {
+      try {
+        const result = await dashboard();
+        if (result?.stats) {
+          setData(result);
+          if (result.stats.active_users !== undefined) {
+            setActiveUsers(result.stats.active_users);
+          }
+        }
+      } catch {
+        // Ağ hatalarında ekranın çökmemesi için sessiz geçilir
+      }
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [authed, loadDashboard]);
+  }, [authed, dashboard]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -179,8 +194,8 @@ function AdminPage() {
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" data-testid="admin-stats-grid">
         <StatCard
           label="Canlı Ziyaretçi"
-          value={stats?.active_users ?? 0}
-          hint="Anlık aktif kullanıcı"
+          value={activeUsers}
+          hint="Anlık aktif kullanıcı (1sn)"
           testId="admin-stat-active-users"
         />
         <StatCard
