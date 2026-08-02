@@ -168,16 +168,53 @@ function AdminPage() {
       </header>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats-grid">
-        <StatCard label="Toplam Görüntülenme" value={stats?.page_views_total ?? 0} testId="admin-stat-total-views" />
-        <StatCard label="Son 24 Saat" value={stats?.page_views_24h ?? 0} hint={`7 gün: ${stats?.page_views_7d ?? 0}`} testId="admin-stat-views-24h" />
+        <StatCard
+          label="Günlük Giriş"
+          value={stats?.page_views_today ?? 0}
+          hint={`Bugün tekil ziyaretçi: ${stats?.unique_visitors_today ?? 0}`}
+          testId="admin-stat-views-today"
+        />
+        <StatCard
+          label="Toplam Giriş"
+          value={stats?.page_views_total ?? 0}
+          hint={`Son 24s: ${stats?.page_views_24h ?? 0} · 7g: ${stats?.page_views_7d ?? 0}`}
+          testId="admin-stat-total-views"
+        />
         <StatCard label="Tekil Ziyaretçi (30g)" value={stats?.unique_visitors_30d ?? 0} testId="admin-stat-unique" />
         <StatCard label="Hata Kaydı" value={stats?.error_count ?? 0} hint={`İzlenen sinyal: ${stats?.signals_tracked ?? 0}`} testId="admin-stat-errors" />
       </section>
 
+      <Card className="border-border/70 bg-card/50" data-testid="admin-country-card">
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-base">Ülkelere Göre Giriş Dağılımı</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 p-4 pt-0">
+          {(stats?.countries?.items ?? []).map((row: any) => (
+            <div key={row.code} className="space-y-1" data-testid={`admin-country-row-${row.code}`}>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium">
+                  {row.name} <span className="text-muted-foreground">({row.code})</span>
+                </span>
+                <span className="font-mono text-muted-foreground">
+                  %{row.pct} · {row.count}
+                </span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-sm bg-muted/40">
+                <div className="h-full rounded-sm bg-primary" style={{ width: `${Math.min(100, row.pct)}%` }} />
+              </div>
+            </div>
+          ))}
+          {!(stats?.countries?.items ?? []).length ? (
+            <p className="text-xs text-muted-foreground">Henüz ülke verisi toplanmadı.</p>
+          ) : null}
+        </CardContent>
+      </Card>
+
+
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="border-border/70 bg-card/50 lg:col-span-2" data-testid="admin-scan-card">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-base">Günlük Kapsamlı Tarama</CardTitle>
+            <CardTitle className="text-base" data-testid="admin-scan-health-title">Tarama Sağlığı ve Günlük Kapsamlı Tarama</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 p-4 pt-0">
             <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
