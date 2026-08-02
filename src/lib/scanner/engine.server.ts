@@ -4,10 +4,16 @@ import { fetchFundamentals, fetchSymbolOhlcv, mergeFundamentals } from "./yahoo.
 import { MARKET_UNIVERSE, marketForSymbol, normalizeSymbol } from "./universe";
 import type { SignalDoc } from "./types";
 
-const BATCH_PER_MARKET = 50;
-const CONCURRENCY = 4;
-/** Yarıda kesilen bir taramanın kilidi bu süre sonunda otomatik serbest bırakılır. */
-const STALE_RUN_MS = 20 * 60 * 1000;
+const BATCH_PER_MARKET = 75;
+const CONCURRENCY = 12;
+/** Veri sağlayıcı hız sınırına takılan sembol için deneme sayısı. */
+const MAX_ATTEMPTS = 3;
+/**
+ * Yarıda kesilen (isteği iptal edilen) bir taramanın kilidi bu süre sonunda serbest bırakılır.
+ * Canlı tarama started_at alanını düzenli güncellediği için kısa tutulabilir.
+ */
+const STALE_RUN_MS = 90 * 1000;
+
 
 export async function getScannerState() {
   const { data } = await supabaseAdmin.from("scanner_state").select("*").eq("id", 1).maybeSingle();
@@ -79,10 +85,39 @@ export async function analyzeSymbol(symbol: string): Promise<SignalDoc | null> {
   const previous = await fetchSignalDocument(upper);
   const cached = (previous?.["fundamental"] as Record<string, any> | undefined) ?? null;
   const fundamentals = mergeFundamentals(fresh, cached);
-  const doc = buildSignal(upper, marketForSymbol(upper), bars, fundamentals);
+  const base = buildSignal(upper, marketForSymbol(upper), bars, fundamentals);
+
+  // Yeniden analiz sonrası formasyon onay görseli kaybolmasın: görsel taze veriyle yeniden
+  // üretilir, üretilemezse önceki görsel korunur. AI raporu da korunur.
+  let patternImageUrl: string | null = null;
+  try {
+    const { buildPatternImage } = await import("./pattern-image.server");
+    patternImageUrl = buildPatternImage(base as unknown as Record<string, any>) || null;
+  } catch (error) {
+    console.error("pattern image build failed", error);
+  }
+  const previousImage = (previous as Record<string, any> | null)?.["pattern_image_url"] ?? null;
+  const previousSummary = (previous as Record<string, any> | null)?.["ai_summary"] ?? null;
+
+  const doc = {
+    ...base,
+    pattern_image_url: patternImageUrl ?? previousImage,
+    pattern_image_updated_at: patternImageUrl
+      ? new Date().toISOString()
+      : (previous as Record<string, any> | null)?.["pattern_image_updated_at"] ?? null,
+    ...(previousSummary
+      ? {
+          ai_summary: previousSummary,
+          ai_summary_updated_at:
+            (previous as Record<string, any> | null)?.["ai_summary_updated_at"] ?? null,
+        }
+      : {}),
+  } as SignalDoc;
+
   await storeSignal(doc);
   return doc;
 }
+
 
 async function mapWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>) {
   let cursor = 0;
@@ -118,16 +153,24 @@ export async function runScanBatch() {
   let scanned = 0;
   let lastError: string | null = null;
 
+  let lastBeat = Date.now();
+
   try {
     await mapWithConcurrency(batch, CONCURRENCY, async ({ symbol }) => {
-      // Veri sağlayıcı sınırlamalarında tek seferlik yeniden deneme.
-      let doc = await analyzeSymbol(symbol).catch(() => null);
-      if (!doc) {
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+      // Veri sağlayıcı sınırlamalarında artan beklemeyle yeniden dene.
+      let doc = null as Awaited<ReturnType<typeof analyzeSymbol>> | null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS && !doc; attempt++) {
+        if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
         doc = await analyzeSymbol(symbol).catch(() => null);
       }
       if (doc) scanned += 1;
+      // Kalp atışı: tarama sürerken kilit "bayat" sayılmasın.
+      if (Date.now() - lastBeat > 30_000) {
+        lastBeat = Date.now();
+        await setScannerState({ started_at: new Date().toISOString() }).catch(() => {});
+      }
     });
+
   } catch (error) {
     lastError = error instanceof Error ? error.message : String(error);
   }
