@@ -65,7 +65,7 @@ export default function DashboardPage() {
   const loadSignals = useCallback(async () => {
     setLoadingSignals(true);
     try {
-      const data = await fetchSignals({ market, action, limit: 500 });
+      const data = await fetchSignals({ market, action, limit: 50 });
       setSignals(data);
       setSelectedSymbol((previousSymbol) => {
         if (data.length === 0) {
